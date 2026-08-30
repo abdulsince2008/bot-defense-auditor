@@ -1,0 +1,2 @@
+[console_scripts]
+bot-audit = bot_auditor.cli:main

@@ -1,0 +1,2 @@
+bot_auditor
+test_venv

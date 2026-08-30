@@ -1,0 +1,120 @@
+# Bot Defense Auditor Configuration
+# Test your own staging site's WAF/bot detection rules
+
+target:
+  url: "https://httpbin.org"  # Replace with your staging URL
+  # Optional: specify a specific path to test
+  path: "/headers"
+
+# Request signatures to test against your WAF
+# Each signature represents a specific client fingerprint
+signatures:
+  # Legitimate crawlers (should NOT be blocked)
+  - name: "Googlebot"
+    user_agent: "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+    headers:
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      Accept-Language: "en-US,en;q=0.5"
+
+  - name: "Bingbot"
+    user_agent: "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"
+    headers:
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+
+  - name: "Googlebot-Mobile"
+    user_agent: "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+    headers:
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+
+  # Common browsers (should NOT be blocked)
+  - name: "Chrome-Latest"
+    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    headers:
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"
+      Accept-Language: "en-US,en;q=0.9"
+      Sec-CH-UA: '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"'
+      Sec-CH-UA-Mobile: "?0"
+      Sec-CH-UA-Platform: '"Windows"'
+
+  - name: "Firefox-Latest"
+    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0"
+    headers:
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+      Accept-Language: "en-US,en;q=0.5"
+      Upgrade-Insecure-Requests: "1"
+
+  - name: "Safari-MacOS"
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15"
+    headers:
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      Accept-Language: "en-US,en;q=0.9"
+
+  # Suspicious / bot-like signatures (MAY be blocked - this is what we're testing)
+  - name: "Python-Requests"
+    user_agent: "python-requests/2.31.0"
+    headers:
+      Accept: "*/*"
+
+  - name: "cURL"
+    user_agent: "curl/8.5.0"
+    headers:
+      Accept: "*/*"
+
+  - name: "Go-http-client"
+    user_agent: "Go-http-client/1.1"
+    headers:
+      Accept: "*/*"
+
+  - name: "Java-HttpClient"
+    user_agent: "Java/21.0.1 HttpClient"
+    headers:
+      Accept: "*/*"
+
+  - name: "Node-Fetch"
+    user_agent: "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"
+    headers:
+      Accept: "*/*"
+
+  # Headless browser fingerprints (often blocked)
+  - name: "Headless-Chrome"
+    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 HeadlessChrome/120.0.0.0"
+    headers:
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"
+
+  - name: "PhantomJS"
+    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/538.1 (KHTML, like Gecko) PhantomJS/2.1.1 Safari/538.1"
+    headers:
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+
+  # Missing/empty headers (often flagged)
+  - name: "No-User-Agent"
+    user_agent: ""
+    headers:
+      Accept: "*/*"
+
+  - name: "No-Accept-Header"
+    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    headers: {}
+
+  # Suspicious header combinations
+  - name: "Bot-Like-Headers"
+    user_agent: "Mozilla/5.0 (compatible; Bot/1.0)"
+    headers:
+      X-Forwarded-For: "1.2.3.4"
+      X-Requested-With: "XMLHttpRequest"
+
+# Test execution settings
+settings:
+  # Timeout per request (seconds)
+  timeout: 10
+  # Number of retries for failed requests
+  retries: 2
+  # Delay between requests (seconds) - be respectful
+  delay: 1.0
+  # Test methods
+  methods:
+    - "GET"
+  # Follow redirects
+  follow_redirects: true
+  # Maximum response body size to read (bytes)
+  max_body_size: 1048576
